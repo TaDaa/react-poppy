@@ -20,7 +20,7 @@
   },
   "scripts": {
     "prepublish": "npm run build",
-    "build": "rm -rf dist/*.* && node build.js",
+    "build": "rm -rf dist/*.* && cp libs/poppy.css dist/poppy.css && webpack",
     "postpublish": "git push --follow-tags"
   },
   "devDependencies": {

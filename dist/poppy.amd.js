@@ -1,5 +1,4 @@
-var poppy =
-/******/ (function(modules) { // webpackBootstrap
+define("poppy", ["React","ReactDOM"], function(__WEBPACK_EXTERNAL_MODULE_3__, __WEBPACK_EXTERNAL_MODULE_4__) { return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 
@@ -840,13 +839,13 @@ var poppy =
 /* 3 */
 /***/ function(module, exports) {
 
-	module.exports = React;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_3__;
 
 /***/ },
 /* 4 */
 /***/ function(module, exports) {
 
-	module.exports = ReactDOM;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
 
 /***/ },
 /* 5 */
@@ -865,4 +864,4 @@ var poppy =
 	});
 
 /***/ }
-/******/ ]);
+/******/ ])});;
