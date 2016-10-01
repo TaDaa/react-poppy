@@ -1,0 +1,35 @@
+{
+  "name": "react-poppy",
+  "version": "0.1.18",
+  "description": "React popover that scales, follows, scrolls, and grows",
+  "main": "dist/poppy.node.js",
+  "author": {
+    "name": "Trevor Lovell"
+  },
+  "keywords": [
+    "react",
+    "popover",
+    "pop",
+    "poppy",
+    "hover"
+  ],
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TaDaa/react-poppy.git"
+  },
+  "scripts": {
+    "prepublish": "npm run build",
+    "build": "rm -rf dist/*.* && node build.js",
+    "postpublish": "git push --follow-tags"
+  },
+  "devDependencies": {
+    "babel-core": "^6.16.0",
+    "babel-loader": "^6.2.5",
+    "babel-preset-react": "^6.16.0",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2",
+    "uglify": "^0.1.5",
+    "webpack": "^1.13.2"
+  }
+}
