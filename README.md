@@ -27,6 +27,13 @@ clone/download and use appropriate script in /dist
 
 
 
+##Psuedo JSX
+```
+<Poppy content="World" title={"Hello"} constrainTo="body" toggleOnClick>
+    <button style={{margin:20,padding:10,height:50}}>HOVER ME</button>
+</Poppy>
+```
+
 
 
 ###Properties
