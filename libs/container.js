@@ -1,4 +1,5 @@
-var React = require('react');
+//var React = require('react');
+//var React = window.React;
 module.exports = React.createClass({
     'shouldComponentUpdate' : function () {
         return !this.loaded && (this.loaded = true);

@@ -4,7 +4,7 @@
     opacity:0;
     position:absolute;
 }
-.poppy-popover-background {
+.poppy-background {
     opacity:0.925;
     z-index:0;
     backface-visibility:hidden;

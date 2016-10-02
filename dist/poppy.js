@@ -53,12 +53,45 @@ var poppy =
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = __webpack_require__(2);
-	module.exports.Container = __webpack_require__(5);
+	module.exports.Container = __webpack_require__(3);
 
 /***/ },
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
+	var group_timer,
+	    groups = [];
+
+	function group(item) {
+	    if (!group_timer) {
+	        group_timer = setTimeout(do_group, 16);
+	    }
+	    item._group = 1;
+	    groups.push(item);
+	}
+	function ungroup(item) {
+	    var index = groups.indexOf(item);
+	    groups[index] = 0;
+	}
+	function do_group() {
+	    group_timer = 0;
+	    var i, ln, item, pack, settings;
+	    for (i = 0, ln = groups.length; i < ln; i++) {
+	        if (item = groups[i]) {
+	            pack = item.pack;
+	            item._group = 0;
+	            settings = item.settings;
+	            pack.targetRect = settings.target.getBoundingClientRect();
+	            settings.constrainTo = item.props.constrainTo || defaults.constrainTo;
+	            settings.constrainTarget = item._upwardSelector(settings.constrainTo, settings);
+	            pack.parentRect = settings.constrainTarget.getBoundingClientRect();
+	        }
+	    }
+	    for (i = 0, ln = groups.length; i < ln; i++) {
+	        groups[i]._updateAsync();
+	    }
+	    groups.length = 0;
+	}
 	//
 	//TODO cleanup and opensource
 	//TODO add groups
@@ -143,14 +176,14 @@ var poppy =
 	    return _defaults;
 	}
 
-	var React = __webpack_require__(3),
-	    ReactDOM = __webpack_require__(4),
-	    Popover = React.createClass({
+	var
+	//React = require('react'),
+	//ReactDOM = require('react-dom'),
+	Popover = React.createClass({
 	    displayName: 'Popover',
 
 	    'shouldComponentUpdate': function (props, state) {
 	        var last = this.state || {},
-	            position1 = last.position || {},
 	            position2 = state.position || {},
 	            result = this.minWidth !== position2.minWidth || this.minHeight !== position2.minHeight || this.maxWidth !== position2.maxWidth || last.content !== state.content || last.title !== state.title || this.maxHeight !== position2.maxHeight;
 	        return result;
@@ -221,7 +254,7 @@ var poppy =
 	    }
 	}),
 	    overlay_template = document.createElement('span');
-	overlay_template.innerHTML = '<div class="poppy-container" style="position:absolute;top:0px;display:inline;pointer-events:none;z-index:6000"></div>`';
+	overlay_template.innerHTML = '<div class="poppy-container" style="position:absolute;top:0px;display:inline;pointer-events:none;z-index:6000"></div>';
 	overlay_template = overlay_template.lastChild;
 
 	module.exports = React.createClass({
@@ -230,6 +263,7 @@ var poppy =
 	    'getInitialState': function () {
 	        var state = assign_defaults(this.props);
 	        this._lastTargetRect = { left: 0, top: 0, width: 0, height: 0 };
+	        this.pack = {};
 	        this.settings = {
 	            arrowStyle: {
 	                width: defaults.arrowSize,
@@ -259,19 +293,19 @@ var poppy =
 	    },
 	    'componentDidMount': function () {
 	        var me = this,
-	            settings = this.state.settings,
-	            target = ReactDOM.findDOMNode(this),
-	            window = target.ownerDocument.defaultView;
+	            target = ReactDOM.findDOMNode(this);
 
 	        me.setState({
 	            'target': target
+	        });
+	        this._mount_timer = setTimeout(function () {
+	            me._updateSync(me.props, me.state);
 	        });
 	    },
 	    'componentWillUnmount': function () {
 	        var target = this.state.target,
 	            doc = target.ownerDocument,
-	            overlay = doc.body.querySelector('.ui-popover-overlay');
-	        window = doc.defaultView;
+	            window = doc.defaultView;
 
 	        if (this.settings && (target = this.settings.target)) {
 	            target.removeEventListener('mouseenter', this._onMouseEnter);
@@ -281,7 +315,8 @@ var poppy =
 	        this.untrack();
 	        this._resize_timer && clearTimeout(this._resize_timer);
 	        this._show_timer && clearTimeout(this._show_timer);
-	        this._render_timer && clearTimeout(this._render_timer);
+	        this._mount_timer && clearTimeout(this._mount_timer);
+	        //this._render_timer && clearTimeout(this._render_timer);
 	        this.overlay && this.overlay.parentNode.removeChild(this.popoverEl);
 	        this._init_timer && clearTimeout(this._init_timer);
 
@@ -290,7 +325,7 @@ var poppy =
 	    },
 	    'componentWillUpdate': function (props, state) {
 	        this._updateSync(props, state);
-	        !this._render_timer && (this._render_timer = setTimeout(this._updateAsync, 16));
+	        !this._group && group(this);
 	    },
 	    '_updateSync': function (props, state) {
 	        state = state || this.state;
@@ -363,7 +398,6 @@ var poppy =
 	        settings.constrainWidth = props.constrainWidth !== undefined ? props.constrainWidth : defaults.constrainWidth;
 	    },
 	    '_updateAsync': function () {
-	        this._render_timer = undefined;
 
 	        if (!this.settings.target) {
 	            return;
@@ -376,15 +410,11 @@ var poppy =
 	            showing = settings.showing & SHOWING.PROPERTY,
 	            doc = settings.target.ownerDocument,
 	            body = doc.body,
-	            overlay = this._upwardSelector(".poppy-container"),
+	            overlay = this._upwardSelector(".poppy-container", settings),
 	            popover = this.popover,
 	            arrowStyle = settings.arrowStyle,
 	            arrowSize = props.arrowSize !== undefined ? props.arrowSize : defaults.arrowSize,
 	            region = props.region;
-
-	        settings.constrainTo = props.constrainTo || defaults.constrainTo;
-
-	        settings.constrainTarget = this._upwardSelector(settings.constrainTo, settings);
 
 	        if (region && region !== settings.last_prop_region) {
 	            if (region === 'top') {
@@ -416,7 +446,10 @@ var poppy =
 
 	        this._adjustPosition(this.settings);
 
-	        if (!overlay || overlay === body) {
+	        if (overlay === body) {
+	            overlay = body.querySelector('.poppy-container');
+	        }
+	        if (!overlay) {
 	            body.appendChild(overlay = this.overlay = overlay_template.cloneNode(true));
 	        } else if (!this.overlay) {
 	            this.overlay = overlay;
@@ -436,10 +469,7 @@ var poppy =
 	            this.popoverEl = ReactDOM.findDOMNode(popover);
 	        }
 
-	        if (this._init_timer) {
-	            cancelAnimationFrame(this._init_timer);
-	        }
-	        this._init_timer = requestAnimationFrame(function () {
+	        !this._init_timer && requestAnimationFrame(function () {
 	            if (showing && !show) {
 	                me.hide(SHOWING.PROPERTY);
 	            } else if (!showing && show) {
@@ -480,9 +510,11 @@ var poppy =
 	        }
 	    },
 	    '_adjustPosition': function (settings) {
-	        var rect = settings.target.getBoundingClientRect(),
-	            parentRect = settings.constrainTarget.getBoundingClientRect(),
-	            region = settings.region,
+	        var rect = this.pack.targetRect,
+	            //settings.target.getBoundingClientRect(),
+	        parentRect = this.pack.parentRect,
+	            //settings.constrainTarget.getBoundingClientRect(),
+	        region = settings.region,
 	            leftSpace = settings.leftSpace = rect.left - parentRect.left,
 	            rightSpace = settings.rightSpace = parentRect.left + parentRect.width - (rect.left + rect.width),
 	            topSpace = settings.topSpace = rect.top - parentRect.top,
@@ -539,7 +571,7 @@ var poppy =
 	        }
 	    },
 	    '_onScroll': function () {
-	        !this._render_timer && this._updateAsync();
+	        !this._group && group(this);
 	    },
 	    '_track_timer': undefined,
 	    '_doTrack': function () {
@@ -552,14 +584,7 @@ var poppy =
 	            return;
 	        }
 
-	        var targetRect = target.getBoundingClientRect(),
-	            lastTargetRect = this._lastTargetRect;
-
-	        if (targetRect.top !== lastTargetRect.top || targetRect.left !== lastTargetRect.left || targetRect.width !== lastTargetRect.width || targetRect.height !== lastTargetRect.height || targetRect.ownerDocument !== this._lastTargetDoc) {
-	            this._lastTargetRect = targetRect;
-	            this._lastTargetDoc = targetRect.ownerDocument;
-	            !this._render_timer && this._updateAsync();
-	        }
+	        !this._group && group(this);
 	    },
 	    'track': function () {
 	        if (!this._track_timer) {
@@ -672,7 +697,6 @@ var poppy =
 	    },
 	    '_upwardSelector': function (selector, settings) {
 	        var target = settings.target,
-	            parent,
 	            document = target.ownerDocument;
 
 	        if (!selector) {
@@ -706,26 +730,25 @@ var poppy =
 	        var overflow = this.popover.refs.overflow,
 	            overflowStyle = overflow.style,
 	            overflowRect,
-	            popoverRect = this.popover.refs.popover.getBoundingClientRect(),
 	            wrapperStyle = this.popover.refs.wrapper.style,
 	            arrow = this.popover.refs.arrow,
 	            arrowelStyle = arrow.style,
 	            contentStyle = this.popover.refs.content.style,
+	            settings = this.settings,
 	            title = this.popover.refs.title,
 	            titleRect = title && title.getBoundingClientRect(),
-	            titleWrapper = this.popover.refs.titleWrapper,
-	            titleWrapperRect = titleWrapper && titleWrapper.getBoundingClientRect(),
-	            titleWidth = titleRect && titleRect.width || 0,
+	            targetRect = this.pack.targetRect,
+	            //target.getBoundingClientRect(),
+	        parentRect = this.pack.parentRect,
+	            //settings.constrainTarget.getBoundingClientRect(),
+	        titleWidth = titleRect && titleRect.width || 0,
 	            titleHeight = titleRect && titleRect.height || 0,
-	            targetRect = target.getBoundingClientRect(),
 	            targetTop = targetRect.top,
 	            targetWidth = targetRect.width,
 	            halfTargetWidth = targetWidth / 2,
 	            targetHeight = targetRect.height,
 	            halfTargetHeight = targetHeight / 2,
 	            targetLeft = targetRect.left,
-	            settings = this.settings,
-	            parentRect = settings.constrainTarget.getBoundingClientRect(),
 	            offsetTop,
 	            offsetLeft,
 	            parentTop = offsetTop = parentRect.top,
@@ -742,7 +765,6 @@ var poppy =
 	            size3_4 = settings.arrowSize3_4,
 	            size2_1 = settings.arrowSize2_1,
 	            size3_2 = settings.arrowSize3_2,
-	            arrowStyle = settings.arrowStyle,
 	            upperBounds,
 	            lowerBounds,
 	            x = settings.position.left,
@@ -821,7 +843,7 @@ var poppy =
 	        wrapperStyle.left = contentStyle.left = (x | 0) + 'px';
 	        wrapperStyle.height = (height | 0) + 'px';
 
-	        this.settings.showing && (this.popoverEl.style.visiblity = null);
+	        this.settings.showing && this.popoverEl.style.visiblity && (this.popoverEl.style.visiblity = null);
 	    },
 	    'render': function () {
 	        var children = this.props.children;
@@ -840,19 +862,8 @@ var poppy =
 /* 3 */
 /***/ function(module, exports) {
 
-	module.exports = React;
-
-/***/ },
-/* 4 */
-/***/ function(module, exports) {
-
-	module.exports = ReactDOM;
-
-/***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(3);
+	//var React = require('react');
+	//var React = window.React;
 	module.exports = React.createClass({
 	    displayName: 'exports',
 

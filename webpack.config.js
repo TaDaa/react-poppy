@@ -1,7 +1,9 @@
 var 
 webpack = require('webpack'),
 path = require('path'),
+dedupe = new webpack.optimize.DedupePlugin(),
 dir = path.resolve(__dirname,'dist');
+
 module.exports = [
 ];
 
@@ -51,9 +53,19 @@ function config (target,optionalName) {
             'libraryTarget' : target,
             'filename' : 'poppy'+optionalName +'.js'
         },
-        'externals' : {
-            'react' : 'React',
-            'react-dom' : 'ReactDOM'
+        'externals': {
+            'react': {
+                'root': 'React',
+                'commonjs2': 'react',
+                'commonjs': 'react',
+                'amd': 'react'
+            },
+            'react-dom': {
+                'root': 'ReactDOM',
+                'commonjs2': 'react-dom',
+                'commonjs': 'react-dom',
+                'amd': 'react-dom'
+            }
         },
         'module' : {
             'loaders' : [{
@@ -76,9 +88,19 @@ function config (target,optionalName) {
             'libraryTarget' : target,
             'filename' : 'poppy'+optionalName+'.min.js'
         },
-        'externals' : {
-            'react' : 'React',
-            'react-dom' : 'ReactDOM'
+        'externals': {
+            'react': {
+                'root': 'React',
+                'commonjs2': 'react',
+                'commonjs': 'react',
+                'amd': 'react'
+            },
+            'react-dom': {
+                'root': 'ReactDOM',
+                'commonjs2': 'react-dom',
+                'commonjs': 'react-dom',
+                'amd': 'react-dom'
+            }
         },
         'module' : {
             'loaders' : [{
