@@ -2,6 +2,19 @@
 
 React popover that scales, follows, scrolls, and grows
 
+
+##Usage
+```
+npm install react-poppy
+```
+
+or
+
+clone/download and use appropriate script in /dist
+
+
+
+
 ##Demos
 
 * <a href="https://tadaa.github.io/demos/poppy/scroll.html" target="_blank">reposition on scroll events</a>
@@ -13,7 +26,7 @@ React popover that scales, follows, scrolls, and grows
 * <a href="https://tadaa.github.io/demos/poppy/track.html" target="_blank">can track elements (same as above demo except follows elements not modified by react state)</a>
 
 
-##Properties
+###Properties
 * children=[ReactElement] - the target element that the popover should follow and position around
 
 * constrainTo=[element,ReactElement,querySelector='parent'] - used to calculate the bounding area that the popover should be contained in.  If using a string, the querySelector is matched upward from the popover's location in the DOM tree. Parent is a special selector that will use the React element containing the popover.
@@ -28,7 +41,7 @@ React popover that scales, follows, scrolls, and grows
 
 * constrainHeight=[boolean=true] - limits the height to the constrainTo's available space
 
-constrainWidth=[boolean=true] - limits the width to the constrainTo's available space
+*constrainWidth=[boolean=true] - limits the width to the constrainTo's available space
 
 * arrowSize=[number=15] - changes the size of the arrow
 
@@ -63,7 +76,7 @@ constrainWidth=[boolean=true] - limits the width to the constrainTo's available 
 * onShow=[function] - event called when the popover is shown
 
 
-##Methods -- warning you should generally control these behaviors with props to keep behaviors consistent
+###Methods -- warning you should generally control these behaviors with props to keep behaviors consistent
 
 * track() -  start tracking target element
 
