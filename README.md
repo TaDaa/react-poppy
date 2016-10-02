@@ -26,6 +26,9 @@ clone/download and use appropriate script in /dist
 * <a href="https://tadaa.github.io/demos/poppy/track.html" target="_blank">can track elements (same as above demo except follows elements not modified by react state)</a>
 
 
+
+
+
 ###Properties
 * children=[ReactElement] - the target element that the popover should follow and position around
 
@@ -41,7 +44,7 @@ clone/download and use appropriate script in /dist
 
 * constrainHeight=[boolean=true] - limits the height to the constrainTo's available space
 
-*constrainWidth=[boolean=true] - limits the width to the constrainTo's available space
+* constrainWidth=[boolean=true] - limits the width to the constrainTo's available space
 
 * arrowSize=[number=15] - changes the size of the arrow
 
@@ -74,6 +77,8 @@ clone/download and use appropriate script in /dist
 * onHide=[function] - event called when the popover is hidden
 
 * onShow=[function] - event called when the popover is shown
+
+
 
 
 ###Methods -- warning you should generally control these behaviors with props to keep behaviors consistent
