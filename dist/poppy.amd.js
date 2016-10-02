@@ -63,7 +63,7 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 
 	function group(item) {
 	    if (!group_timer) {
-	        group_timer = setTimeout(do_group, 16);
+	        group_timer = requestAnimationFrame(do_group, 16);
 	    }
 	    item._group = 1;
 	    groups.push(item);
@@ -111,8 +111,8 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	    //'onContentMouseEnter' : undefined,
 	    'backgroundStyle': undefined,
 	    'arrowStyle': {},
-	    'foregroundStyle': undefined,
 	    'wrapperStyle': undefined,
+	    'titleStyle': undefined,
 	    'content': '',
 	    'className': '',
 	    'title': '',
@@ -224,7 +224,7 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	                { ref: 'content', className: 'poppy-content-wrapper', style: wrapperStyle },
 	                title ? React.createElement(
 	                    'div',
-	                    { ref: 'titleWrapper', className: 'poppy-title-wrapper' },
+	                    { ref: 'titleWrapper', style: state.titleStyle, className: 'poppy-title-wrapper' },
 	                    React.createElement(
 	                        'span',
 	                        { ref: 'title', className: 'poppy-title' },
@@ -347,6 +347,9 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	            }
 	        }
 
+	        settings.titleStyle = props.titleStyle || defaults.titleStyle;
+	        settings.wrapperStyle = props.wrapperStyle || defaults.wrapperStyle;
+
 	        if (scroller !== boundScroll) {
 	            if (boundScroll) {
 	                boundScroll.removeEventListener('scroll', this._onScroll);
@@ -468,16 +471,17 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	            this.popoverEl = ReactDOM.findDOMNode(popover);
 	        }
 
-	        !this._init_timer && requestAnimationFrame(function () {
-	            if (showing && !show) {
-	                me.hide(SHOWING.PROPERTY);
-	            } else if (!showing && show) {
-	                me.show(SHOWING.PROPERTY);
-	            }
+	        //!this._init_timer && requestAnimationFrame(function () {
+	        if (showing && !show) {
+	            me.hide(SHOWING.PROPERTY);
+	        } else if (!showing && show) {
+	            me.show(SHOWING.PROPERTY);
+	        }
 
-	            me._init_timer = false;
-	            me._updatePositions();
-	        });
+	        //me._init_timer = false;
+	        me._updatePositions();
+
+	        //});
 	    },
 	    '_onResize': function () {
 	        var me = this;
@@ -513,7 +517,12 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	            //settings.target.getBoundingClientRect(),
 	        parentRect = this.pack.parentRect,
 	            //settings.constrainTarget.getBoundingClientRect(),
-	        region = settings.region,
+	        parentRatio = parentRect.width / parentRect.height,
+	            region = settings.region,
+	            _topSpace,
+	            _leftSpace,
+	            _rightSpace,
+	            _bottomSpace,
 	            leftSpace = settings.leftSpace = rect.left - parentRect.left,
 	            rightSpace = settings.rightSpace = parentRect.left + parentRect.width - (rect.left + rect.width),
 	            topSpace = settings.topSpace = rect.top - parentRect.top,
@@ -530,11 +539,21 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	        }
 
 	        if (!region) {
-	            if (leftSpace > bottomSpace && leftSpace > topSpace && leftSpace >= rightSpace && topSpace > 30 && bottomSpace > 30) {
+	            //leftSpace *= 1/parentRatio;
+	            //rightSpace *= 1/ parentRatio;
+	            //we want to  favor bottom/top
+	            _leftSpace = leftSpace * .75;
+	            _rightSpace = rightSpace * .75;
+	            _topSpace = topSpace * parentRatio;
+	            _bottomSpace = bottomSpace * parentRatio;
+	            //console.error(leftSpace,rightSpace,topSpace,bottomSpace);
+	            if (_leftSpace > _bottomSpace && _leftSpace > _topSpace && _leftSpace >= _rightSpace) {
+	                //if (leftSpace > bottomSpace && leftSpace > topSpace && leftSpace >= rightSpace && ((topSpace > 30 && bottomSpace > 30)||(topSpace<100 && bottomSpace<100))) {
 	                region = settings.region = LEFT;
-	            } else if (rightSpace > bottomSpace && rightSpace > topSpace && topSpace > 30 && bottomSpace > 30) {
+	            } else if (_rightSpace > _bottomSpace && _rightSpace > _topSpace) {
+	                //} else if (rightSpace > bottomSpace && rightSpace > topSpace && topSpace > 30 && bottomSpace > 30) {
 	                region = settings.region = RIGHT;
-	            } else if (topSpace > bottomSpace) {
+	            } else if (_topSpace > _bottomSpace) {
 	                region = settings.region = TOP;
 	            } else {
 	                region = settings.region = BOTTOM;
@@ -639,6 +658,7 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	            } else {
 	                style.transform = 'translateX(0px)translateY(30px)';
 	            }
+	            style.pointerEvents = 'none';
 	            style.opacity = 0;
 	            me.props.onHide && me.props.onHide();
 	        }, settings.hideDelay);
@@ -679,6 +699,7 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	                } else {
 	                    style.transform = 'translateX(0px)translateY(30px)';
 	                }
+	                style.pointerEvents = 'all';
 	                me._show_timer = setTimeout(function () {
 	                    me._show_timer = undefined;
 	                    style.transition = 'all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms';

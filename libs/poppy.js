@@ -3,7 +3,7 @@ groups=[];
 
 function group (item) {
     if (!group_timer) {
-        group_timer = setTimeout(do_group,16);
+        group_timer = requestAnimationFrame(do_group,16);
     } 
     item._group = 1;
     groups.push(item);
@@ -53,8 +53,8 @@ var defaults = {
     //'onContentMouseEnter' : undefined,
     'backgroundStyle' : undefined,
     'arrowStyle' : {},
-    'foregroundStyle' : undefined,
     'wrapperStyle' : undefined,
+    'titleStyle' : undefined,
     'content' : '',
     'className' : '',
     'title' : '',
@@ -161,7 +161,7 @@ Popover = React.createClass({
              <div ref="wrapper" className="poppy-background-overlay" style={state.wrapperStyle}></div>
             </span>
             <div ref="content" className="poppy-content-wrapper" style={wrapperStyle}>
-            { title ? <div ref="titleWrapper" className="poppy-title-wrapper"><span ref="title" className="poppy-title">{state.title}</span></div>
+            { title ? <div ref="titleWrapper" style={state.titleStyle} className="poppy-title-wrapper"><span ref="title" className="poppy-title">{state.title}</span></div>
                       : null
             }
             <div ref="overflow" className="poppy-overflow" style={overflowStyle}>
@@ -278,6 +278,8 @@ module.exports = React.createClass({
             }
         }
 
+        settings.titleStyle = props.titleStyle || defaults.titleStyle;
+        settings.wrapperStyle = props.wrapperStyle || defaults.wrapperStyle;
 
         if (scroller !== boundScroll) {
             if (boundScroll) {
@@ -412,17 +414,17 @@ module.exports = React.createClass({
 
 
 
-        !this._init_timer && requestAnimationFrame(function () {
+        //!this._init_timer && requestAnimationFrame(function () {
             if (showing && !show) {
                 me.hide(SHOWING.PROPERTY);
             } else if (!showing && show) {
                 me.show(SHOWING.PROPERTY);
             }
 
-            me._init_timer = false;
+            //me._init_timer = false;
             me._updatePositions();
 
-        });
+        //});
     },
     '_onResize' : function () {
         var me = this;
@@ -456,7 +458,9 @@ module.exports = React.createClass({
     '_adjustPosition' : function (settings) {
         var rect = this.pack.targetRect,//settings.target.getBoundingClientRect(),
         parentRect = this.pack.parentRect,//settings.constrainTarget.getBoundingClientRect(),
+        parentRatio = parentRect.width/parentRect.height,
         region = settings.region,
+        _topSpace,_leftSpace,_rightSpace,_bottomSpace,
         leftSpace = settings.leftSpace =  rect.left - parentRect.left,
         rightSpace = settings.rightSpace =  parentRect.left + parentRect.width - (rect.left + rect.width),
         topSpace = settings.topSpace =  rect.top - parentRect.top,
@@ -473,11 +477,21 @@ module.exports = React.createClass({
         }
 
         if (!region) {
-            if (leftSpace > bottomSpace && leftSpace > topSpace && leftSpace >= rightSpace && topSpace > 30 && bottomSpace > 30) {
+            //leftSpace *= 1/parentRatio;
+            //rightSpace *= 1/ parentRatio;
+            //we want to  favor bottom/top
+            _leftSpace =leftSpace*.75;
+            _rightSpace =rightSpace*.75;
+            _topSpace = topSpace*parentRatio;
+            _bottomSpace = bottomSpace*parentRatio;
+            //console.error(leftSpace,rightSpace,topSpace,bottomSpace);
+            if (_leftSpace > _bottomSpace && _leftSpace > _topSpace && _leftSpace >= _rightSpace) {
+            //if (leftSpace > bottomSpace && leftSpace > topSpace && leftSpace >= rightSpace && ((topSpace > 30 && bottomSpace > 30)||(topSpace<100 && bottomSpace<100))) {
                 region = settings.region = LEFT;
-            } else if (rightSpace > bottomSpace && rightSpace > topSpace && topSpace > 30 && bottomSpace > 30) {
+            } else if (_rightSpace > _bottomSpace && _rightSpace > _topSpace) {
+            //} else if (rightSpace > bottomSpace && rightSpace > topSpace && topSpace > 30 && bottomSpace > 30) {
                 region = settings.region =  RIGHT;
-            } else if (topSpace > bottomSpace) {
+            } else if (_topSpace > _bottomSpace) {
                 region = settings.region = TOP;
             } else {
                 region = settings.region = BOTTOM;
@@ -582,6 +596,7 @@ module.exports = React.createClass({
             } else {
                 style.transform='translateX(0px)translateY(30px)';
             }
+            style.pointerEvents = 'none';
             style.opacity = 0
             me.props.onHide && me.props.onHide();
         },settings.hideDelay);
@@ -624,6 +639,7 @@ module.exports = React.createClass({
                 } else {
                     style.transform = 'translateX(0px)translateY(30px)';
                 }
+                style.pointerEvents = 'all'
                 me._show_timer = setTimeout(function () {
                     me._show_timer = undefined;
                     style.transition = 'all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms';
