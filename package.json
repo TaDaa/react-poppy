@@ -1,6 +1,6 @@
 {
   "name": "react-poppy",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "React popover that scales, follows, scrolls, and grows",
   "main": "dist/poppy.node.js",
   "author": {
@@ -24,8 +24,8 @@
     "postpublish": "git push --follow-tags"
   },
   "peerDependencies" : {
-    "react": ">= 15.3.2",
-    "react-dom": ">= 15.3.2"
+    "react": ">= 15.0.0",
+    "react-dom": ">= 15.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.16.0",
