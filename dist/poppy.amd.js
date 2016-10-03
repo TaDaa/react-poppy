@@ -59,7 +59,9 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 /***/ function(module, exports) {
 
 	var group_timer,
-	    groups = [];
+	    groups = [],
+	    isSafari = navigator.userAgent.toLowerCase();
+	isSafari = isSafari.indexOf('safari') >= 0 && isSafari.indexOf('chrome') < 0;
 
 	function group(item) {
 	    if (!group_timer) {
@@ -73,7 +75,6 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	    groups[index] = 0;
 	}
 	function do_group() {
-	    group_timer = 0;
 	    var i, ln, item, pack, settings;
 	    for (i = 0, ln = groups.length; i < ln; i++) {
 	        if (item = groups[i]) {
@@ -87,9 +88,13 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	        }
 	    }
 	    for (i = 0, ln = groups.length; i < ln; i++) {
-	        groups[i]._updateAsync();
+	        if (item = groups[i]) {
+	            item._updateAsync();
+	        }
+	        //groups[i]._updateAsync();
 	    }
 	    groups.length = 0;
+	    group_timer = 0;
 	}
 	//
 	//TODO cleanup and opensource
@@ -263,6 +268,7 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	        var state = assign_defaults(this.props);
 	        this._lastTargetRect = { left: 0, top: 0, width: 0, height: 0 };
 	        this.pack = {};
+	        this._transitioning = true;
 	        this.settings = {
 	            arrowStyle: {
 	                width: defaults.arrowSize,
@@ -857,11 +863,41 @@ define("poppy", [], function() { return /******/ (function(modules) { // webpack
 	        }
 
 	        contentStyle.width = wrapperStyle.width = (width | 0) + 'px';
+	        //arrowelStyle.top = (arrowTop|0) + 'px';
+	        //arrowelStyle.left = (arrowLeft|0) + 'px';
+	        //wrapperStyle.top = contentStyle.top = (y|0) + 'px';
+	        //wrapperStyle.left = contentStyle.left = (x|0) + 'px'
+
+
+	        if (isSafari && this.popoverEl) {
+	            if (group_timer) {
+	                this.popoverEl.style.transition = arrowelStyle.transition = contentStyle.transition = wrapperStyle.transition = 'none';
+	            } else {
+	                this.popoverEl.style.transition = arrowelStyle.transition = contentStyle.transition = wrapperStyle.transition = null;
+	            }
+	        }
+
+	        //var me = this;
+	        //setTimeout(function () {
+	        //me.popoverEl.style.transition = 
+	        //arrowelStyle.transition =
+	        //contentStyle.transition =
+	        //wrapperStyle.transition = 'all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms'
+	        //setTimeout(function () {
+	        //arrowelStyle.transform = 'translate3d('+(arrowLeft|0)+'px,'+(arrowTop|0)+'px,0)rotateZ(45deg)'
+	        //wrapperStyle.transform = contentStyle.transform =  'translate3d('+(x|0)+'px,'+(y|0)+'px,0)';
+
+	        contentStyle.width = wrapperStyle.width = (width | 0) + 'px';
 	        arrowelStyle.top = (arrowTop | 0) + 'px';
 	        arrowelStyle.left = (arrowLeft | 0) + 'px';
 	        wrapperStyle.top = contentStyle.top = (y | 0) + 'px';
 	        wrapperStyle.left = contentStyle.left = (x | 0) + 'px';
 	        wrapperStyle.height = (height | 0) + 'px';
+
+	        //},60)
+	        //})
+	        //console.error(wrapperStyle.transform);
+
 
 	        this.settings.showing && this.popoverEl.style.visiblity && (this.popoverEl.style.visiblity = null);
 	    },
