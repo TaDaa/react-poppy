@@ -3,6 +3,9 @@
     display:inline-block;
     opacity:0;
     position:absolute;
+    z-index:0;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
 }
 .poppy-background {
     opacity:0.925;
@@ -51,6 +54,7 @@
     display: inline-block;
     z-index:0;
     padding:0;
+    transition:none;
 }
 .poppy-content-wrapper {
     position:absolute;
@@ -63,6 +67,7 @@
 }
 .poppy-title-wrapper {
     z-index:1;
+    transition:none;
     position:absolute;
     display:inline-block;
     width: 100%;

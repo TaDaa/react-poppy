@@ -1,6 +1,6 @@
 {
   "name": "react-poppy",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "React popover that scales, follows, scrolls, and grows",
   "main": "dist/poppy.node.js",
   "author": {
