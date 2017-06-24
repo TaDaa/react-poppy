@@ -1,7 +1,10 @@
 var group_timer,
 groups=[],
+React = require('react'),
+ReactDOM = require('react-dom'),
 isSafari = navigator.userAgent.toLowerCase();
-isSafari = (isSafari.indexOf('safari') >= 0) && (isSafari.indexOf('chrome') < 0);
+isSafari = (isSafari.indexOf('safari') >= 0) && (isSafari.indexOf('chrome') < 0),
+propTypes = require('prop-types');
 
 function group (item,unsafe) {
     if (!group_timer) {
@@ -128,16 +131,19 @@ function assign_defaults (obja) {
 var 
 //React = require('react'),
 //ReactDOM = require('react-dom'),
-Popover = React.createClass({
-    'shouldComponentUpdate' : function (props,state) {
+Popover = class Popover extends React.Component {
+    constructor () {
+        super();
+        this._onExit = (e) => {this.__onExit(e)};
+        this._onEnter = (e) => {this.__onEnter(e)};
+    }
+    shouldComponentUpdate (props,state) {
         var last = this.state || {},
         position2 = state.position || {},
         result = (this.minWidth !== position2.minWidth || this.minHeight !== position2.minHeight || this.maxWidth !== position2.maxWidth || last.content !== state.content || last.title !== state.title || this.maxHeight !== position2.maxHeight);
         return result;
-    },
-    'overflowStyle' : {},
-    'wrapperStyle' : {},
-    'render' : function () {
+    }
+    render () {
         var state = this.state;
         if (!state) {
             return null;
@@ -179,25 +185,37 @@ Popover = React.createClass({
             </div>
             </div>
         </span>);
-    },
-    '_onEnter' : function () {
+    }
+    __onEnter () {
         this.state.onEnterContent && this.state.onEnterContent(SHOWING.CONTENT);
-    },
-    '_onExit' : function () {
+    }
+    __onExit () {
         this.state.onLeaveContent && this.state.onLeaveContent(SHOWING.CONTENT);
     }
-}),
+},
 overlay_template = document.createElement('span');
 overlay_template.innerHTML = '<div class="poppy-container" style="position:absolute;top:0px;display:inline;pointer-events:none;z-index:6000"></div>'
 overlay_template = overlay_template.lastChild;
+Popover.prototype.overflowStyle = {};
+Popover.prototype.wrapperStyle = {},
 
 
-module.exports = React.createClass({
-    'getInitialState' : function () {
+module.exports = class Poppy extends React.Component {
+    constructor () {
+        super();
         var state = assign_defaults(this.props);
         this._lastTargetRect = {left:0,top:0,width:0,height:0};
         this.pack={};
         this._transitioning = true;
+
+        this._doTrack = (e) => this.__doTrack(e);
+        this._onClick = (e) => this.__onClick(e);
+        this._onResize = (e) => this.__onResize(e);
+        this._onScroll = (e) => this.__onScroll(e);
+        this._onMouseEnter = (e) => this.__onMouseEnter(e);
+        this._onMouseLeave = (e) => this.__onMouseLeave(e);
+
+
         this.settings = {
             arrowStyle:{
                 width:defaults.arrowSize,
@@ -223,22 +241,22 @@ module.exports = React.createClass({
             title:''
         };
         this.componentWillUpdate(this.props,state);
-        return state;
-    },
-    'componentDidMount' : function () {
+        this.state = state;
+    }
+    componentDidMount () {
         var 
         me = this,
         target = ReactDOM.findDOMNode(this);
 
 
         me.setState({
-            'target' : target 
+                'target' : target 
         });
         this._mount_timer = setTimeout(function () {
             me._updateSync(me.props,me.state);
         });
-    },
-    'componentWillUnmount' : function () {
+    }
+    componentWillUnmount () {
         var target = this.state.target,
         doc = target.ownerDocument,
         window = doc.defaultView;
@@ -258,12 +276,12 @@ module.exports = React.createClass({
 
         this.state.settings.bindWindowResize && window.removeEventListener('resize',this._onResize);
         this._boundScroll && this._boundScroll.removeEventListener('scroll',this._onScroll);
-    },
-    'componentWillUpdate' : function (props,state) {
+    }
+    componentWillUpdate (props,state) {
         this._updateSync(props,state);
         !this._group && group(this);
-    },
-    '_updateSync' : function (props,state) {
+    }
+    _updateSync (props={},state) {
         state = state || this.state;
         var 
         settings = this.settings,
@@ -324,8 +342,8 @@ module.exports = React.createClass({
 
         if (props.persistOverContent) {
             settings.persistOverContent = true;
-            settings.onEnterContent = this.show;
-            settings.onLeaveContent = this.hide;
+            settings.onEnterContent = (e)=>this.show(e);
+            settings.onLeaveContent = (e)=>this.hide(e);
         } else {
             settings.persistOverContent = false;
             settings.onEnterContent = false;
@@ -338,8 +356,8 @@ module.exports = React.createClass({
         settings.constrainHeight = props.constrainHeight !== undefined ? props.constrainHeight : defaults.constrainHeight;
         settings.constrainWidth = props.constrainWidth !== undefined ? props.constrainWidth : defaults.constrainWidth;
 
-    },
-    '_updateAsync' : function () {
+    }
+    _updateAsync () {
 
         if (!this.settings.target) {
             return;
@@ -432,9 +450,9 @@ module.exports = React.createClass({
             //me._init_timer = false;
             me._updatePositions();
 
-        //});
-    },
-    '_onResize' : function () {
+            //});
+    }
+    __onResize () {
         var me = this;
         if (this._resize_timer) {
             clearTimeout(this._resize_timer);
@@ -443,18 +461,18 @@ module.exports = React.createClass({
             me._resize_timer = undefined;
             me.setState({})
         },60);
-    },
-    '_onMouseEnter' : function () {
+    }
+    __onMouseEnter () {
         if (this.settings.showOnMouseEnter) {
             this.show(SHOWING.MOUSEOVER);
         }
-    },
-    '_onMouseLeave' : function () {
+    }
+    __onMouseLeave () {
         if (this.settings.hideOnMouseLeave) {
             this.hide(SHOWING.MOUSEOVER);
         }
-    },
-    '_onClick' : function () {
+    }
+    __onClick () {
         if (this.settings.toggleOnClick) {
             if (this.settings.showing & SHOWING.CLICK) {
                 this.hide(SHOWING.CLICK);
@@ -462,8 +480,8 @@ module.exports = React.createClass({
                 this.show(SHOWING.CLICK);
             }
         }
-    },
-    '_adjustPosition' : function (settings) {
+    }
+    _adjustPosition (settings) {
         var rect = this.pack.targetRect,//settings.target.getBoundingClientRect(),
         parentRect = this.pack.parentRect,//settings.constrainTarget.getBoundingClientRect(),
         parentRatio = parentRect.width/parentRect.height,
@@ -485,19 +503,13 @@ module.exports = React.createClass({
         }
 
         if (!region) {
-            //leftSpace *= 1/parentRatio;
-            //rightSpace *= 1/ parentRatio;
-            //we want to  favor bottom/top
             _leftSpace =leftSpace*.75;
             _rightSpace =rightSpace*.75;
             _topSpace = topSpace*parentRatio;
             _bottomSpace = bottomSpace*parentRatio;
-            //console.error(leftSpace,rightSpace,topSpace,bottomSpace);
             if (_leftSpace > _bottomSpace && _leftSpace > _topSpace && _leftSpace >= _rightSpace) {
-            //if (leftSpace > bottomSpace && leftSpace > topSpace && leftSpace >= rightSpace && ((topSpace > 30 && bottomSpace > 30)||(topSpace<100 && bottomSpace<100))) {
                 region = settings.region = LEFT;
             } else if (_rightSpace > _bottomSpace && _rightSpace > _topSpace) {
-            //} else if (rightSpace > bottomSpace && rightSpace > topSpace && topSpace > 30 && bottomSpace > 30) {
                 region = settings.region =  RIGHT;
             } else if (_topSpace > _bottomSpace) {
                 region = settings.region = TOP;
@@ -533,12 +545,12 @@ module.exports = React.createClass({
             constrainHeight && (position.maxHeight = Math.max(topSpace - half_size+2,25));
             constrainWidth && (position.maxWidth = Math.max(leftSpace+rightSpace+rect.width-30,25));
         }
-    },
-    '_onScroll' : function () {
+
+    }
+    __onScroll () {
         !this._group && group(this,true);
-    },
-    '_track_timer' : undefined,
-    '_doTrack' : function () {
+    }
+    __doTrack () {
         this._track_timer = setTimeout(this._doTrack,16);
 
         var settings = this.settings,
@@ -549,25 +561,25 @@ module.exports = React.createClass({
         }
 
         !this._group && group(this,true);
-    },
-    'track' : function () {
+    }
+    track () {
         if (!this._track_timer) {
             this._track_timer = setTimeout(this._doTrack,16);
         }
         return this;
-    },
-    'untrack' : function () {
+    }
+    untrack () {
         if (this._track_timer) {
             clearTimeout(this._track_timer);
             this._track_timer = false;
         }
         return this;
-    },
-    'refresh' : function () {
+    }
+    refresh () {
         this.setState({});
         return this;
-    },
-    'hide' : function (trigger) {
+    }
+    hide (trigger) {
         var me = this,
         settings = this.settings,
         showing = settings.showing;
@@ -608,8 +620,8 @@ module.exports = React.createClass({
             style.opacity = 0
             me.props.onHide && me.props.onHide();
         },settings.hideDelay);
-    },
-    'show' : function (trigger) {
+    }
+    show (trigger) {
         var 
         me = this,
         settings = this.settings,
@@ -662,8 +674,8 @@ module.exports = React.createClass({
             style.opacity = 1;
             style.transform = 'translateX(0px)translateY(0px)';
         }
-    },
-    '_upwardSelector' : function (selector,settings) {
+    }
+    _upwardSelector (selector,settings) {
         var target = settings.target,
         document = target.ownerDocument;
 
@@ -689,8 +701,8 @@ module.exports = React.createClass({
             return target;
         }
         return selector;
-    },
-    '_updatePositions' : function () {
+    }
+    _updatePositions () {
         var target = this.settings.target;
         if (!target) {
             return;
@@ -806,60 +818,93 @@ module.exports = React.createClass({
             }
         }
 
-          contentStyle.width =  wrapperStyle.width = (width|0) + 'px';
-          //arrowelStyle.top = (arrowTop|0) + 'px';
-          //arrowelStyle.left = (arrowLeft|0) + 'px';
-          //wrapperStyle.top = contentStyle.top = (y|0) + 'px';
-          //wrapperStyle.left = contentStyle.left = (x|0) + 'px'
-
-          
-          if (isSafari && (this._unsafe) && this.popoverEl) {
-              if (group_timer) {
-                  this.popoverEl.style.transition = 
-                      arrowelStyle.transition =
-                      contentStyle.transition =
-                      wrapperStyle.transition = 'none'
+        contentStyle.width =  wrapperStyle.width = (width|0) + 'px';
+        //arrowelStyle.top = (arrowTop|0) + 'px';
+        //arrowelStyle.left = (arrowLeft|0) + 'px';
+        //wrapperStyle.top = contentStyle.top = (y|0) + 'px';
+        //wrapperStyle.left = contentStyle.left = (x|0) + 'px'
 
 
-              } else {
-                  this.popoverEl.style.transition = 
-                      arrowelStyle.transition =
-                      contentStyle.transition =
-                      wrapperStyle.transition = null
-
-              }
-          }
-
-          //var me = this;
-          //setTimeout(function () {
-          //me.popoverEl.style.transition = 
-              //arrowelStyle.transition =
-              //contentStyle.transition =
-              //wrapperStyle.transition = 'all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms'
-          //setTimeout(function () {
-          //arrowelStyle.transform = 'translate3d('+(arrowLeft|0)+'px,'+(arrowTop|0)+'px,0)rotateZ(45deg)'
-          //wrapperStyle.transform = contentStyle.transform =  'translate3d('+(x|0)+'px,'+(y|0)+'px,0)';
-
-          contentStyle.width =  wrapperStyle.width = (width|0) + 'px';
-          arrowelStyle.top = (arrowTop|0) + 'px';
-          arrowelStyle.left = (arrowLeft|0) + 'px';
-          wrapperStyle.top = contentStyle.top = (y|0) + 'px';
-          wrapperStyle.left = contentStyle.left = (x|0) + 'px'
-          wrapperStyle.height = (height|0) + 'px';
-
-          //},60)
-          //})
-          //console.error(wrapperStyle.transform);
+        if (isSafari && (this._unsafe) && this.popoverEl) {
+            if (group_timer) {
+                this.popoverEl.style.transition = 
+                    arrowelStyle.transition =
+                    contentStyle.transition =
+                    wrapperStyle.transition = 'none'
 
 
-          this.settings.showing && this.popoverEl.style.visiblity && (this.popoverEl.style.visiblity = null);
+            } else {
+                this.popoverEl.style.transition = 
+                    arrowelStyle.transition =
+                    contentStyle.transition =
+                    wrapperStyle.transition = null
 
-    },
-    'render' : function () {
+            }
+        }
+
+        //var me = this;
+
+                contentStyle.width =  wrapperStyle.width = (width|0) + 'px';
+                arrowelStyle.top = (arrowTop|0) + 'px';
+                arrowelStyle.left = (arrowLeft|0) + 'px';
+                wrapperStyle.top = contentStyle.top = (y|0) + 'px';
+                wrapperStyle.left = contentStyle.left = (x|0) + 'px'
+                wrapperStyle.height = (height|0) + 'px';
+
+
+
+            this.settings.showing && this.popoverEl.style.visiblity && (this.popoverEl.style.visiblity = null);
+
+    }
+    render () {
         var children = this.props.children;
         if (typeof children === 'string') {
             children = <span>{children}</span>;
         }
         return children || null;
     }
-});
+};
+module.exports.propTypes = {
+    children : propTypes.any,
+    constrainTo : propTypes.any,
+    show : propTypes.bool,
+    showDelay : propTypes.number,
+    hideDelay : propTypes.number,
+    track : propTypes.bool,
+    constrainHeight : propTypes.bool,
+    constrainWidth : propTypes.bool,
+    arrowSize : propTypes.number,
+    region : propTypes.oneOf(['left','right','top','bottom',null,false,undefined]),
+    bindScroll : propTypes.oneOfType([propTypes.bool,propTypes.string]),
+    bindWindowResize : propTypes.bool,
+    arrowStyle : propTypes.object,
+    backgroundStyle : propTypes.object,
+    wrapperStyle : propTypes.object,
+    titleStyle : propTypes.object,
+    className : propTypes.string,
+    title : propTypes.any,
+    showOnMouseEnter : propTypes.bool,
+    hideOnMouseLeave : propTypes.bool,
+    toggleOnClick : propTypes.bool,
+    persistOverContent : propTypes.bool,
+    onHide : propTypes.func,
+    onShow : propTypes.func
+};
+module.exports.defaultProps = {
+    constrainTo : 'parent',
+    showDelay : 300,
+    hideDelay : 320,
+    track : false,
+    constrainHeight : true,
+    constrainWidth : true,
+    arrowSize : 15,
+    bindScroll : false,
+    bindWindowResize : false,
+    className : '',
+    title : '',
+    showOnMouseEnter : true,
+    hideOnMouseLeave : true,
+    toggleOnClick : false,
+    persistOverContent : false
+}
+

@@ -1,4 +1,4 @@
-var poppy =
+module.exports =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -1061,13 +1061,13 @@ var poppy =
 /* 3 */
 /***/ (function(module, exports) {
 
-	module.exports = undefined;
+	module.exports = require("react");
 
 /***/ }),
 /* 4 */
 /***/ (function(module, exports) {
 
-	module.exports = undefined;
+	module.exports = require("react-dom");
 
 /***/ }),
 /* 5 */

@@ -1,8 +1,8 @@
 {
   "name": "react-poppy",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "React popover that scales, follows, scrolls, and grows",
-  "main": "dist/poppy.node.js",
+  "main": "dist/poppy.umd.js",
   "author": {
     "name": "Trevor Lovell"
   },
@@ -23,14 +23,16 @@
     "build": "rm -rf dist/*.* && cp libs/poppy.css dist/poppy.css && webpack",
     "postpublish": "git push --follow-tags"
   },
-  "peerDependencies" : {
+  "peerDependencies": {
     "react": ">= 15.0.0",
     "react-dom": ">= 15.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.16.0",
     "babel-loader": "^6.2.5",
+    "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.16.0",
+    "prop-types": "^15.5.10",
     "uglify": "^0.1.5",
     "webpack": "^1.13.2"
   }

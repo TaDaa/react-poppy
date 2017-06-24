@@ -8,7 +8,7 @@ module.exports = [
 ];
 
 config('var',''),
-config('commonjs2','node'),
+config('commonjs2'),
 config('amd'),
 config('umd')
 //demo
@@ -58,13 +58,15 @@ function config (target,optionalName) {
                 'root': 'React',
                 'commonjs2': 'react',
                 'commonjs': 'react',
-                'amd': 'react'
+                'amd': 'react',
+                'umd' : 'react'
             },
             'react-dom': {
                 'root': 'ReactDOM',
                 'commonjs2': 'react-dom',
                 'commonjs': 'react-dom',
-                'amd': 'react-dom'
+                'amd': 'react-dom',
+                'umd' : 'react-dom'
             }
         },
         'module' : {
@@ -73,7 +75,7 @@ function config (target,optionalName) {
                 'loader' : 'babel-loader',
                 'exclude' : /node_modules/,
                 'query' : {
-                    'presets' : ['react']
+                    'presets' : ['react','es2015']
                 }
             }]
         }
@@ -108,7 +110,7 @@ function config (target,optionalName) {
                 'loader' : 'babel-loader',
                 'exclude' : /node_modules/,
                 'query' : {
-                    'presets' : ['react']
+                    'presets' : ['es2015','react']
                 }
             }]
         },
