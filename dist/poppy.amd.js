@@ -816,7 +816,7 @@ Popover.prototype.wrapperStyle = {}, module.exports = function (_React$Component
             this._show_timer && clearTimeout(this._show_timer);
             this._mount_timer && clearTimeout(this._mount_timer);
             //this._render_timer && clearTimeout(this._render_timer);
-            this.overlay && this.overlay.parentNode.removeChild(this.popoverEl);
+            this.overlay && this.popoverEl.parentNode === this.overlay && this.overlay.removeChild(this.popoverEl);
             this._init_timer && clearTimeout(this._init_timer);
 
             this.state.settings.bindWindowResize && window.removeEventListener('resize', this._onResize);
