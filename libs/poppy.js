@@ -2,9 +2,10 @@ var group_timer,
 groups=[],
 React = require('react'),
 ReactDOM = require('react-dom'),
-isSafari = navigator.userAgent.toLowerCase();
-isSafari = (isSafari.indexOf('safari') >= 0) && (isSafari.indexOf('chrome') < 0),
+isSafari = navigator.userAgent.toLowerCase(),
 propTypes = require('prop-types');
+
+isSafari = (isSafari.indexOf('safari') >= 0) && (isSafari.indexOf('chrome') < 0);
 
 function group (item,unsafe) {
     if (!group_timer) {

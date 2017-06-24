@@ -1,6 +1,6 @@
 {
   "name": "react-poppy",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "React popover that scales, follows, scrolls, and grows",
   "main": "dist/poppy.umd.js",
   "author": {
@@ -34,6 +34,6 @@
     "babel-preset-react": "^6.16.0",
     "prop-types": "^15.5.10",
     "uglify": "^0.1.5",
-    "webpack": "^1.13.2"
+    "webpack": "^3.0.0"
   }
 }
