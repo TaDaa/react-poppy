@@ -275,7 +275,7 @@ module.exports = class Poppy extends React.Component {
         this.overlay && this.popoverEl.parentNode === this.overlay &&  this.overlay.removeChild(this.popoverEl)
         this._init_timer && clearTimeout(this._init_timer);
 
-        this.state.settings.bindWindowResize && window.removeEventListener('resize',this._onResize);
+        this.settings.bindWindowResize && window.removeEventListener('resize',this._onResize);
         this._boundScroll && this._boundScroll.removeEventListener('scroll',this._onScroll);
     }
     componentWillUpdate (props,state) {
