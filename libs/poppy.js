@@ -1,3 +1,4 @@
+
 var group_timer,
 groups=[],
 React = require('react'),
@@ -28,10 +29,31 @@ function do_group () {
             pack = item.pack;
             item._group = 0;
             settings = item.settings;
-            pack.targetRect = settings.target.getBoundingClientRect();
+            var targetRect = settings.target.getBoundingClientRect();
+            pack.targetRect = {
+                top : targetRect.top,
+                left : targetRect.left,
+                right : targetRect.right,
+                bottom : targetRect.bottom,
+                width : targetRect.width,
+                height : targetRect.height
+            };
             settings.constrainTo = item.props.constrainTo || defaults.constrainTo;
             settings.constrainTarget = item._upwardSelector(settings.constrainTo,settings);
-            pack.parentRect = settings.constrainTarget.getBoundingClientRect();
+            if (settings.constrainTarget === window) {
+                pack.parentRect = {
+                    top : window.scrollY,
+                    left : window.scrollX,
+                    width : window.innerWidth,
+                    height : window.innerHeight
+                };
+                pack.parentRect.right = pack.parentRect.width + pack.parentRect.left;
+                pack.parentRect.bottom = pack.parentRect.height +  pack.parentRect.top;
+                pack.targetRect.top += window.scrollY;
+                pack.targetRect.left += window.scrollX;
+            }  else {
+                pack.parentRect = settings.constrainTarget.getBoundingClientRect();
+            }
         }
     }
     for (i=0,ln=groups.length;i<ln;i++) {
@@ -157,22 +179,24 @@ Popover = class Popover extends React.Component {
         minHeight = position.minHeight,
         content = state.content,
         overflowStyle = this.overflowStyle,
-        wrapperStyle = this.wrapperStyle;
+        wrapperStyle = this.wrapperStyle,
+        sWrap = state.wrapperStyle || {},
+        backgroundStyle = state.backgroundStyle || {};
 
 
         overflowStyle.overflow = content ? 'auto' : null;
         this.maxHeight = overflowStyle.maxHeight = wrapperStyle.maxHeight = maxHeight;
         this.maxWidth = overflowStyle.maxWidth = wrapperStyle.maxWidth = maxWidth;
-        this.minHeight = overflowStyle.minHeight = wrapperStyle.minHeight = minHeight;
-        this.minWidth = overflowStyle.minWidth = wrapperStyle.minWidth = minWidth;
+        this.minHeight = backgroundStyle.minHeight =   sWrap.minHeight = minHeight;
+        this.minWidth = backgroundStyle.minWidth =   sWrap.minWidth = minWidth;
 
 
 
 
         return (<span className={"poppy " + (state.className||'')} onMouseOver={this._onEnter} onMouseOut={this._onExit}>
-            <span ref="inner" className="poppy-background" >
-             <div ref="arrow" className="poppy-arrow" style={state.arrowStyle}></div>
-             <div ref="wrapper" className="poppy-background-overlay" style={state.wrapperStyle}></div>
+            <span ref="inner" style={state.backgroundStyle} className="poppy-background" >
+             <div ref="arrow" className="poppy-arrow" style={state.mergedArrowStyle}></div>
+             <div ref="wrapper" className="poppy-background-overlay" style={sWrap}></div>
             </span>
             <div ref="content" className="poppy-content-wrapper" style={wrapperStyle}>
             { title ? <div ref="titleWrapper" style={state.titleStyle} className="poppy-title-wrapper"><span ref="title" className="poppy-title">{state.title}</span></div>
@@ -251,7 +275,7 @@ module.exports = class Poppy extends React.Component {
 
 
         me.setState({
-                'target' : target 
+            'target' : target 
         });
         this._mount_timer = setTimeout(function () {
             me._updateSync(me.props,me.state);
@@ -374,8 +398,8 @@ module.exports = class Poppy extends React.Component {
         body = doc.body,
         overlay = this._upwardSelector(".poppy-container",settings),
         popover = this.popover,
-        arrowStyle = settings.arrowStyle,
         arrowSize = props.arrowSize !== undefined ? props.arrowSize : defaults.arrowSize,
+        arrowStyle = settings.mergedArrowStyle= Object.assign({},settings.arrowStyle,props.arrowStyle),
         region = props.region;
 
 
@@ -395,6 +419,7 @@ module.exports = class Poppy extends React.Component {
             settings.region = defaults.region;
         }
 
+        settings.backgroundStyle = props.backgroundStyle;
 
 
         settings.last_prop_region = region; 
@@ -402,14 +427,12 @@ module.exports = class Poppy extends React.Component {
         settings.content = props.content || defaults.content;
         settings.className = props.className || defaults.className;
 
-        if (settings.arrowSize !== arrowSize) {
-            settings.arrowSize = arrowSize;
-            settings.arrowSize3_4 = arrowSize * .75;
-            settings.arrowSize1_2 = arrowSize * .5;
-            settings.arrowSize2_1 = arrowSize * 2;
-            settings.arrowSize3_2 = arrowSize * 1.5;
-            arrowStyle.height = arrowStyle.width =  arrowSize;
-        }
+        settings.arrowSize = arrowSize;
+        settings.arrowSize3_4 = arrowSize * .75;
+        settings.arrowSize1_2 = arrowSize * .5;
+        settings.arrowSize2_1 = arrowSize * 2;
+        settings.arrowSize3_2 = arrowSize * 1.5;
+        arrowStyle.height = arrowStyle.width =  arrowSize;
 
 
         this._adjustPosition(this.settings);
@@ -520,27 +543,31 @@ module.exports = class Poppy extends React.Component {
         }
 
         if (region === LEFT) {
-            position.minWidth = 0;
+            //position.minWidth = 0;
+            position.minWidth = arrowSize;
             position.minHeight = double_size;
             position.top = position.left = 0;
             constrainWidth && (position.maxWidth = Math.max(leftSpace - half_size-25,double_size));
             constrainHeight && (position.maxHeight = Math.max(topSpace+bottomSpace+rect.height-30,5));
         } else if (region === RIGHT) {
-            position.minWidth = 0;
+            //position.minWidth = 0;
+            position.minWidth = arrowSize;
             position.top = 0;
             position.minHeight = double_size;
             position.left = rect.left + rect.width + half_size; 
             constrainWidth && (position.maxWidth = Math.max(rightSpace - half_size-25,double_size));
             constrainHeight && (position.maxHeight = Math.max(topSpace+bottomSpace+rect.height-30,5));
         } else if (region === BOTTOM) {
-            position.minHeight = 'auto';
+            //position.minHeight = 'auto';
+            position.minHeight = arrowSize;
             position.top = rect.top + rect.height + half_size;
             position.left = 0;
             position.minWidth = double_size;
             constrainHeight && (position.maxHeight = Math.max(bottomSpace - half_size-5,25));
             constrainWidth && (position.maxWidth = Math.max(leftSpace+rightSpace+rect.width-30,25));
         } else {
-            position.minHeight = 'auto';
+            //position.minHeight = 'auto';
+            position.minHeight = arrowSize;
             position.top = position.left = 0;
             position.minWidth = double_size;
             constrainHeight && (position.maxHeight = Math.max(topSpace - half_size+2,25));
@@ -785,7 +812,9 @@ module.exports = class Poppy extends React.Component {
             x = offsetLeft;
             if (region === TOP) {
                 y = (targetTop - height - size3_4 -9);
-                arrowTop = y + height - size1_2;
+                //y = (targetTop - height - size3_4 -9);
+                
+                arrowTop = targetTop- size3_4-9-size1_2;// size3_4 - size1_2;
             } else {
                 arrowTop = y - size1_2;
             }
